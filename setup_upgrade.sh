@@ -6,6 +6,7 @@ source $(pwd)/source_code.path
 
 ## installation necessary package
 apt-get install -y zip gcc pkg-config libxml2-dev libdevmapper-dev libpciaccess-dev python-dev make libnl-dev libyajl-dev
+apt-get install -y libvirt-bin
 
 ## download the source code
 if [[ ! -d $(pwd)/$source_name ]]
