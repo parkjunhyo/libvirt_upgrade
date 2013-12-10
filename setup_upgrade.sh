@@ -2,27 +2,32 @@
 
 ## look for the source file from http://libvirt.org/sources/
 ## change the source path
-source $(pwd)/source_code.path
+env_source_path=$(find `pwd` -name source_code.path)
+source $env_source_path
+working_directory=$(pwd)
+
+## download source default version information
+source_version=${source_version:='libvirt-1.1.3'}
+source_file=$source_version.tar.gz
+source_file_path="http://libvirt.org/sources/$source_file"
 
 ## installation necessary package
-apt-get install -y zip gcc pkg-config libxml2-dev libdevmapper-dev libpciaccess-dev python-dev make libnl-dev libyajl-dev
-apt-get install -y libvirt-bin
+apt-get install -qqy --force-yes zip gcc pkg-config libxml2-dev libdevmapper-dev libpciaccess-dev python-dev make libnl-dev libyajl-dev libvirt-bin
 
-## download the source code
-if [[ ! -d $(pwd)/$source_name ]]
+## download the source code and build up for upgrade for qemu
+if [[ ! -d $working_directory/$source_version ]]
 then
- wget $source_code
- gunzip -c $(pwd)/libvirt-1.1.3.tar.gz | tar xvf -
+ wget $source_file_path
+ gunzip -c $working_directory/$source_file | tar xvf -
+ rm -rf $working_directory/$source_file
+ # upgrade
+ cd $working_directory/$source_version
+ ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --with-qemu=yes
+ make
+ sudo make install
+ cd $working_directory
 fi
 
-## build up the source code (for qemu)
-working_directory=$(pwd)
-cd $(pwd)/$source_name
-./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --with-qemu=yes
-make
-sudo make install
-cd $working_directory
-
-## libvirt restart
+## restart the libvirtd
 initctl stop libvirt-bin  
 initctl start libvirt-bin 
